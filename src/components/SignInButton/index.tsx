@@ -5,11 +5,10 @@ import { signIn, signOut, useSession } from 'next-auth/client'
 
 export function SignInButton() {
   const [session] = useSession()
-  console.log(session)
 
   return session ? (
     <>
-      <button 
+      <button
         type="button"
         className={styles.signInButton}
         onClick={() => signOut()}
@@ -21,7 +20,7 @@ export function SignInButton() {
     </>
   ) : (
     <>
-      <button 
+      <button
         type="button"
         className={styles.signInButton}
         onClick={() => signIn('github')}
