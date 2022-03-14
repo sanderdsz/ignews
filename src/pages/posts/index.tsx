@@ -3,8 +3,20 @@ import styles from './styles.module.scss'
 import {GetStaticProps} from "next";
 import { client } from "../../services/prismic";
 import * as prismic from '@prismicio/client'
+import { RichText } from 'prismic-dom'
 
-export default function Posts() {
+type Post = {
+  slug: string;
+  title: string;
+  excerpt: string;
+  updatedAt: string
+}
+
+interface PostsProps {
+  posts: Post[]
+}
+
+export default function Posts({ posts } : PostsProps) {
   return (
     <>
       <Head>
@@ -12,33 +24,14 @@ export default function Posts() {
       </Head>
       <main className={styles.container}>
         <div className={styles.posts}>
-          <a>
-            <time>12 de março de 2021</time>
-            <strong>The standard Lorem Ipsum passage, used since the 1500s</strong>
-            <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit,
-              sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
-              Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
-              Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident,
-              sunt in culpa qui officia deserunt mollit anim id est laborum.</p>
-          </a>
-          <a>
-            <time>12 de março de 2021</time>
-            <strong>The standard Lorem Ipsum passage, used since the 1500s</strong>
-            <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit,
-              sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
-              Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
-              Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident,
-              sunt in culpa qui officia deserunt mollit anim id est laborum.</p>
-          </a>
-          <a>
-            <time>12 de março de 2021</time>
-            <strong>The standard Lorem Ipsum passage, used since the 1500s</strong>
-            <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit,
-              sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
-              Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
-              Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident,
-              sunt in culpa qui officia deserunt mollit anim id est laborum.</p>
-          </a>
+          {posts.map(post => (
+            // eslint-disable-next-line react/jsx-key
+            <a key={post.slug} href="#">
+              <time>{post.updatedAt}</time>
+              <strong>{post.title}</strong>
+              <p>{post.excerpt}</p>
+            </a>
+          ))}
         </div>
       </main>
     </>
@@ -54,9 +47,24 @@ export const getStaticProps: GetStaticProps = async () => {
       pageSize: 100
     }
   )
-  console.log(response)
+
+  const posts = response.results.map(post => {
+    console.log(post)
+    return {
+      slug: post.uid,
+      title: RichText.asText(post.data.title),
+      excerpt: post.data.content.find(content => content.type === 'paragraph')?.text ?? '',
+      updatedAt: new Date(post.last_publication_date).toLocaleDateString('pt-BR', {
+        day: '2-digit',
+        month: 'long',
+        year: 'numeric'
+      })
+    }
+  })
 
   return {
-    props: {}
+    props: {
+      posts
+    }
   }
 }
